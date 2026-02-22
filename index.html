@@ -223,22 +223,48 @@
   inputData.min = new Date().toISOString().split("T")[0];
 
   inputData.addEventListener('change', function() {
-    const dataStr = this.value; 
-    const dataObjeto = new Date(dataStr + 'T00:00:00'); // Ajuste para fuso horário
-    const diaSemana = dataObjeto.getDay(); // 0 é domingo, 1 é segunda
+      const dataStr = this.value; 
+      
+      // Ajuste para pegar o dia da semana corretamente no fuso horário local
+      const partesData = dataStr.split('-');
+      const dataObjeto = new Date(partesData[0], partesData[1] - 1, partesData[2]);
+      const diaSemana = dataObjeto.getDay(); 
 
-    // 0 = Domingo, 1 = Segunda
-    if (diaSemana === 0 || diaSemana === 1) {
-        alert("Olá! O Studio não atende aos domingos e segundas. Por favor, escolha outra data! ✨");
-        this.value = ""; // Limpa a data selecionada
-        selectHorario.disabled = true;
-        selectHorario.innerHTML = '<option value="">Selecione primeiro a data</option>';
-        return;
-    }
+      // 0 = Domingo, 1 = Segunda
+      if (diaSemana === 0 || diaSemana === 1) {
+          alert("Olá! O Studio Simone não atende aos domingos e segundas. Por favor, escolha um dia de terça a sábado! ✨");
+          this.value = "";
+          selectHorario.disabled = true;
+          selectHorario.innerHTML = '<option value="">Selecione primeiro a data</option>';
+          return;
+      }
 
-    selectHorario.disabled = false;
-    // ... restante do código de carregar horários que você já tem
-    
+      // Se for um dia útil (Terça a Sábado), libera o horário e busca no banco
+      selectHorario.disabled = false;
+      selectHorario.innerHTML = '<option value="" disabled selected>Carregando horários...</option>';
+      
+      db.ref('agenda/' + dataStr).on('value', (snapshot) => {
+          const ocupados = snapshot.val() || {};
+          selectHorario.innerHTML = '<option value="" disabled selected>Escolha um horário</option>';
+          
+          let temHorarioLivre = false;
+          todosHorarios.forEach(hr => {
+              const id = hr.replace(':', '');
+              if (!ocupados[id]) {
+                  let option = document.createElement('option');
+                  option.value = hr;
+                  option.text = hr + " h";
+                  selectHorario.appendChild(option);
+                  temHorarioLivre = true;
+              }
+          });
+
+          if(!temHorarioLivre) {
+              selectHorario.innerHTML = '<option value="" disabled>Agenda lotada para este dia</option>';
+          }
+      });
+  });
+
   document.getElementById('btnWhatsapp').addEventListener('click', function() {
       const nome = document.getElementById('name').value;
       const data = inputData.value;
@@ -246,7 +272,7 @@
       const servico = document.getElementById('message').value;
 
       if(!nome || !data || !horario) {
-          alert("Por favor, preencha seu nome, a data e escolha um horário.");
+          alert("Por favor, preencha nome, data e escolha um horário!");
           return;
       }
 
