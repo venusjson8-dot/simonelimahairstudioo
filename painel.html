@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Simone Lima - Gestão de Luxo</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --dourado: #c5a059;
+            --champanhe: #f4eee0;
+            --bege-claro: #faf7f2;
+            --texto-escuro: #4a4238;
+            --branco: #ffffff;
+            --cancelar: #d9534f;
+            --confirmar: #5cb85c;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bege-claro);
+            color: var(--texto-escuro);
+            padding-top: 30px;
+        }
+
+        h2, h4 {
+            font-family: 'Playfair Display', serif;
+            color: var(--dourado);
+        }
+
+        /* Container do Login */
+        .login-container {
+            max-width: 380px;
+            margin: 80px auto;
+            background: var(--branco);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.15);
+            text-align: center;
+            border-top: 5px solid var(--dourado);
+        }
+
+        /* Botão de Horário */
+        .btn-hora {
+            margin-bottom: 15px;
+            height: 70px;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn-success { background-color: #fcfaf5; color: #8a967e; border: 1px solid #e1dccf; } /* Livre */
+        .btn-danger { background-color: var(--dourado); color: white; } /* Ocupado */
+
+        .btn-hora:hover { transform: scale(1.03); }
+
+        /* Estilo do Calendário no Admin */
+        #data-admin {
+            border: 2px solid var(--dourado);
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 600;
+            color: var(--texto-escuro);
+            background-color: var(--branco);
+        }
+
+        #painel-logado { display: none; }
+
+        .btn-mestre {
+            background-color: var(--dourado);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 12px;
+        }
+
+        .btn-mestre:hover { background-color: #b38f4d; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="tela-login" class="login-container">
+        <p style="text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; margin-bottom: 5px;">Acesso Restrito</p>
+        <h2>Simone Lima</h2>
+        <div class="mt-4">
+            <input type="password" id="senha-acesso" class="form-control mb-3 text-center" placeholder="Digite sua senha">
+            <button onclick="verificarSenha()" class="btn btn-mestre btn-block">ENTRAR NO SISTEMA</button>
+        </div>
+    </div>
+
+    <div id="painel-logado" class="container">
+        <div class="text-center mb-5">
+            <p style="text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0;">Gestão de Agenda</p>
+            <h2>Studio Simone Lima</h2>
+        </div>
+
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-5 text-center bg-white p-4 rounded shadow-sm">
+                <label class="font-weight-bold mb-2">Selecione o dia para organizar:</label>
+                <input type="date" id="data-admin" class="form-control text-center">
+            </div>
+        </div>
+
+        <div id="area-agenda" class="text-center">
+            <h4 id="titulo-data" class="mb-4">---</h4>
+            <div id="grade-horarios" class="row"></div>
+        </div>
+
+        <div class="text-center mt-5">
+            <button onclick="location.reload()" class="btn btn-link text-muted">Sair do Painel</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDnCYPXoCgdfX8zn2QC_1J1E2hi7A2aVwY",
+            authDomain: "studiosimone.firebaseapp.com",
+            databaseURL: "https://studiosimone-default-rtdb.firebaseio.com",
+            projectId: "studiosimone",
+            storageBucket: "studiosimone.firebasestorage.app",
+            messagingSenderId: "210344732788",
+            appId: "1:210344732788:web:04c42183dfe7e050968921"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const horas = ["08:00","08:30","09:00","09:30","10:00","10:30","11:00","11:30","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00"];
+
+        function verificarSenha() {
+            const senha = document.getElementById('senha-acesso').value;
+            if(senha === "2013") { // Lembre-se de mudar sua senha aqui!
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('painel-logado').style.display = 'block';
+                document.getElementById('data-admin').value = new Date().toISOString().split("T")[0];
+                carregarPainel();
+            } else {
+                alert("Senha incorreta, Simone!");
+            }
+        }
+
+        function alternarStatus(h) {
+            const data = document.getElementById('data-admin').value;
+            const id = h.replace(':', '');
+            const ref = db.ref('agenda/' + data + '/' + id);
+            ref.once('value', snap => {
+                if (snap.exists()) ref.remove();
+                else ref.set(true);
+            });
+        }
+
+        function carregarPainel() {
+            const data = document.getElementById('data-admin').value;
+            const dataBR = data.split('-').reverse().join('/');
+            document.getElementById('titulo-data').innerText = "Agenda de " + dataBR;
+
+            db.ref('agenda/' + data).on('value', snapshot => {
+                const ocupados = snapshot.val() || {};
+                const container = document.getElementById('grade-horarios');
+                container.innerHTML = '';
+
+                horas.forEach(h => {
+                    const id = h.replace(':', '');
+                    const isOcupado = ocupados[id];
+                    const classeCor = isOcupado ? 'btn-danger' : 'btn-success';
+                    const statusTxt = isOcupado ? 'OCUPADO' : 'LIVRE';
+                    
+                    container.innerHTML += `
+                        <div class="col-6 col-md-3">
+                            <button onclick="alternarStatus('${h}')" class="btn btn-block btn-hora ${classeCor}">
+                                <span style="font-size: 1.2rem;">${h}</span>
+                                <small style="opacity: 0.8;">${statusTxt}</small>
+                            </button>
+                        </div>`;
+                });
+            });
+        }
+
+        document.getElementById('data-admin').addEventListener('change', carregarPainel);
+    </script>
+</body>
+</html>
