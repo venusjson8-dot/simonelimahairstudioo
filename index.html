@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simone Lima Beauty Studio</title>
+    <title>Simone Lima - Beauty Studio</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     
@@ -22,9 +22,8 @@
             color: var(--texto-escuro);
         }
 
-        /* Topo Luxuoso */
         header {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('SUA_IMAGEM_AQUI'); /* Adicione sua foto de fundo aqui */
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=1374&q=80'); 
             background-size: cover;
             background-position: center;
             height: 60vh;
@@ -36,15 +35,28 @@
             border-bottom: 5px solid var(--dourado);
         }
 
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 3.5rem;
-            letter-spacing: 2px;
+            font-size: 4rem;
+            margin-bottom: 0;
             color: var(--dourado);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        /* Seção de Agendamento */
+        .subtitle {
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            font-size: 1rem;
+            margin-top: -5px;
+            font-weight: 300;
+        }
+
         .booking-section {
             padding: 60px 0;
             background-color: var(--branco);
@@ -74,7 +86,6 @@
             transform: translateY(-2px);
         }
 
-        /* Estilo das Avaliações (Inspirado na sua imagem) */
         .testimonial-section {
             background-color: var(--champanhe);
             padding: 80px 0;
@@ -121,31 +132,20 @@
             margin-bottom: 15px;
         }
 
-        .testimonial-text {
-            font-style: italic;
-            color: #777;
-            line-height: 1.6;
-        }
-
         label {
             font-weight: 600;
             color: var(--dourado);
             margin-top: 10px;
-        }
-
-        .form-control {
-            border: 1px solid #e1dccf;
-            border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div>
+    <div class="logo-container">
         <h1>SIMONE LIMA</h1>
-         <p style="text-transform: uppercase; letter-spacing: 4px; margin-bottom: 0;">Beauty Studio</p>
-        <p>"Realce sua beleza no momento que você merece."</p>
+        <p class="subtitle">Beauty Studio</p>
+        <p class="mt-4" style="font-style: italic; opacity: 0.9;">Realce sua beleza no momento que você merece.</p>
     </div>
 </header>
 
@@ -168,7 +168,7 @@
                     </select>
 
                     <label>Qual procedimento deseja?</label>
-                    <textarea id="message" class="form-control mb-3" rows="2" placeholder="Ex: Designer de sobrancelhas, Unhas, Cabelo..."></textarea>
+                    <textarea id="message" class="form-control mb-3" rows="2" placeholder="Ex: Unhas, Sobrancelha..."></textarea>
                 </div>
 
                 <button id="btnWhatsapp" class="btn btn-agendar btn-block">AGENDAR VIA WHATSAPP</button>
@@ -181,19 +181,16 @@
     <div class="container text-center">
         <h2 class="mb-5" style="font-family: 'Playfair Display';">O que nossas clientes dizem</h2>
         <div class="testimonial-container">
-            
             <div class="testimonial-card">
                 <h3 class="testimonial-name">Neide Souza</h3>
                 <div class="stars">★★★★★</div>
-                <p class="testimonial-text">"Muito bem atendida com essa profissional dedicada, esforçada e educada. Sou grata por ser atendida por ti Simone!"</p>
+                <p class="testimonial-text">"Muito bem atendida com essa profissional dedicada, esforçada e educada."</p>
             </div>
-
             <div class="testimonial-card">
                 <h3 class="testimonial-name">Mairini Tais</h3>
                 <div class="stars">★★★★★</div>
                 <p class="testimonial-text">"Profissional incrível, muito talentosa. Um ambiente muito aconchegante. ❤️"</p>
             </div>
-
         </div>
     </div>
 </section>
@@ -224,30 +221,12 @@
 
   inputData.addEventListener('change', function() {
       const dataStr = this.value; 
-      
-      // Ajuste para pegar o dia da semana corretamente no fuso horário local
-      const partesData = dataStr.split('-');
-      const dataObjeto = new Date(partesData[0], partesData[1] - 1, partesData[2]);
-      const diaSemana = dataObjeto.getDay(); 
-
-      // 0 = Domingo, 1 = Segunda
-      if (diaSemana === 0 || diaSemana === 1) {
-          alert("Olá! O Studio Simone não atende aos domingos e segundas. Por favor, escolha um dia de terça a sábado! ✨");
-          this.value = "";
-          selectHorario.disabled = true;
-          selectHorario.innerHTML = '<option value="">Selecione primeiro a data</option>';
-          return;
-      }
-
-      // Se for um dia útil (Terça a Sábado), libera o horário e busca no banco
       selectHorario.disabled = false;
-      selectHorario.innerHTML = '<option value="" disabled selected>Carregando horários...</option>';
       
       db.ref('agenda/' + dataStr).on('value', (snapshot) => {
           const ocupados = snapshot.val() || {};
           selectHorario.innerHTML = '<option value="" disabled selected>Escolha um horário</option>';
           
-          let temHorarioLivre = false;
           todosHorarios.forEach(hr => {
               const id = hr.replace(':', '');
               if (!ocupados[id]) {
@@ -255,13 +234,8 @@
                   option.value = hr;
                   option.text = hr + " h";
                   selectHorario.appendChild(option);
-                  temHorarioLivre = true;
               }
           });
-
-          if(!temHorarioLivre) {
-              selectHorario.innerHTML = '<option value="" disabled>Agenda lotada para este dia</option>';
-          }
       });
   });
 
